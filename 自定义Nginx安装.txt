@@ -1,0 +1,47 @@
+# 进入工作目录
+cd /root
+
+# 下载 Nginx 源码
+wget https://nginx.org/download/nginx-1.28.0.tar.gz
+tar xzf nginx-1.28.0.tar.gz
+
+# 下载 OpenSSL 3.5.1 源码
+wget https://www.openssl.org/source/openssl-3.5.1.tar.gz
+tar xzf openssl-3.5.1.tar.gz
+编译Nginx 
+
+先进入目录 cd /root/nginx-1.28.0
+
+# 1. 安装模块
+./configure \
+  --prefix=/usr/local/nginx \
+  --user=www-data \
+  --group=www-data \
+  --with-http_ssl_module \
+  --with-http_v2_module \
+  --with-http_v3_module \
+  --with-stream \
+  --with-stream_ssl_module \
+  --with-stream_ssl_preread_module \
+  --with-http_stub_status_module \
+  --with-http_realip_module \
+  --with-pcre-jit \
+  --with-openssl=/root/openssl-3.5.1 \
+  --with-openssl-opt="enable-tls1_3 enable-ec_nistp_64_gcc_128 no-weak-ssl-ciphers" \
+  --with-cc-opt="-O2 -march=x86-64 -fstack-protector-strong" \
+  --with-ld-opt="-ljemalloc -Wl,-z,relro"
+
+# 2. 编译模块
+make -j1
+
+# 3. 安装
+sudo make install
+
+# 4.验证是否成功
+/usr/local/nginx/sbin/nginx -V
+
+本文作者：https://t.me/X22T33X
+
+本文作者：https://t.me/X22T33X
+
+本文作者：https://t.me/X22T33X

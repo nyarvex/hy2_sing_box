@@ -1,0 +1,135 @@
+立刻运行：fail2ban_antissh.sh
+立刻运行：fail2ban_antissh.sh
+立刻运行：fail2ban_antissh.sh
+
+
+
+通过命令行连接 SSH 是一种专业且灵活的操作方式。为了确保连接顺利，请按照以下步骤操作：
+⚠️ 重要：连接前的首要步骤
+在进行任何连接操作之前，请务必关闭设备上运行的所有代理工具（如 Clash、Shadowrocket、V2RayNG 等）。
+原因： 代理软件可能会拦截或重定向你的 SSH 流量，导致服务器无法识别连接请求，或者出现“Connection Timeout（连接超时）”的错误。
+
+第一步：准备终端环境
+根据你的手机操作系统，安装相应的终端模拟器应用：
+
+Android (安卓) 用户
+推荐使用 Termux。它是安卓平台上功能最全的 Linux 终端模拟器。
+1.从官网或 F-Droid 下载并安装 Termux。
+2.打开 Termux，执行以下命令安装 SSH 客户端：
+
+pkg update && pkg install openssh
+
+iOS (iPhone/iPad) 用户
+推荐使用 iSH (模拟 Linux 环境) 或 Blink Shell (专业 SSH 工具)。
+1.在 App Store 搜索并安装 iSH Shell。
+2.打开应用，执行以下命令安装 SSH 软件包：
+
+apk add openssh
+
+Windows 用户
+​推荐使用 PowerShell 或 命令提示符 (CMD)。
+1.​按下键盘上的 Win + R 键，输入 powershell 或 cmd 并回车。
+2.​在打开的窗口中，直接执行以下 SSH 连接命令：
+​
+ssh 用户名@服务器IP -p 端口号
+
+⚠️Windows 10 (1809版本以后) 和 Windows 11 默认自带 OpenSSH，无需手动安装。
+
+macOS / Linux 用户
+1.​推荐使用系统自带的 终端 (Terminal)。
+在 macOS 中，通过 Command + 空格 搜索 Terminal 并打开；在 Linux 中，直接打开你常用的终端应用。
+2.​直接输入以下命令进行连接：
+
+ssh 用户名@服务器IP -p 端口号
+
+第二步：执行 SSH 连接命令
+安装好工具后，你就可以输入命令来连接远程服务器了。标准的命令格式如下：
+
+ssh 用户名@服务器IP -p 端口号
+
+具体操作流程：
+1.输入命令： 如果你的用户名是 root，服务器 IP 是 123.45.67.89，且使用默认端口 22，请输入：
+
+ssh root@123.45.67.89
+ 
+如果你的 SSH 端口修改过（例如是 2200），请务必加上 -p 参数：
+
+ssh root@123.45.67.89 -p 2200
+
+确认安全指纹：
+第一次连接时，系统会询问你是否信任该主机。屏幕会显示 Are you sure you want to continue connecting (yes/no/[fingerprint])?。
+此时请输入 yes 并按回车。
+
+输入登录密码：
+当看到 password: 提示时，输入你的服务器密码。
+
+​注意： 输入密码时，屏幕上不会显示任何字符（连星号都没有），这是正常的安全保护机制。输完后直接按回车即可。
+
+常用小技巧
+​复制粘贴： 在电脑终端中，通常可以使用鼠标右键直接粘贴复制好的密码或命令。
+​保持连接： 如果连接经常自动断开，可以在命令中加入参数：
+
+ssh -o ServerAliveInterval=60 用户名@服务器IP
+
+​退出连接： 输入 exit 并回车即可。
+
+在 VPS 上使用 3x-ui 面板搭建节点是目前非常稳定且高效的选择。针对中国和俄罗斯的网络环境，我们重点推荐使用 VLESS + Reality 协议，因为它不需要购买域名，且抗封锁能力极强。
+
+第一步：连接 VPS 并准备环境
+​连接服务器：使用 SSH 工具（如 Termius 或 Xshell）登录你的 VPS。
+​系统更新：确保系统组件是最新的。执行以下命令：
+ 
+apt update && apt upgrade -y
+
+​安装必备工具：执行 
+
+apt install curl socat -y
+
+​第二步：安装 3x-ui 面板
+​复制并粘贴以下一键安装脚本：
+
+bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+
+关键安装步骤提示：
+​脚本运行后会询问是否进行详细配置。
+​用户名与密码：请设置一个复杂的账号密码，不要使用默认值。
+​面板端口：建议手动输入一个 10000-60000 之间的随机数字（如 54321）。
+
+第三步：放行服务器端口
+​为了能访问面板和后续使用节点，你需要确保端口是通的：
+
+1.​系统内部防火墙（最简单的办法是直接关闭）： ufw disable（Ubuntu/Debian）
+
+2.​云服务商防火墙：如果你使用的是阿里云、腾讯云或 AWS，请务必在网页控制台的“安全组”或“防火墙”设置中，放行你刚才设置的面板端口和后续要使用的节点端口。
+
+第四步：面板设置与节点创建
+1.​在浏览器地址栏输入
+ 
+http://服务器IP:面板端口 
+
+2.​点击左侧菜单的 入站列表 (Inbounds)。
+
+3.​点击 添加入站 (Add Inbound)，按照以下推荐参数配置（这是最适合中俄地区的配置）
+
+备注：随便写一个名字。
+​协议 (Protocol)：选择 VLESS。
+​端口 (Port)：填入 443（如果 443 被占用，可以换成其他大端口）。
+​传输配置 (Transport)：选择 Reality。
+​流控 (Flow)：选择 xtls-rprx-vision。
+​uTLS：选择 chrome。
+​Dest/Server Names：这是关键，需要填入一个你当地访问速度快的、且支持 TLS 1.3 的国外网站域名，例如 yahoo.com 或 microsoft.com
+​
+4.​点击 添加 (Add) 保存。
+
+第五步：客户端连接
+​在入站列表中找到你刚创建的节点，点击 二维码 图标或 复制 (Copy) 链接
+
+​将链接粘贴到你的客户端工具中
+
+性能优化建议
+​开启 BBR 加速： 在 SSH 窗口输入以下命令，可以显著提升跨国链路的传输速度： 
+
+echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf sysctl -p 
+
+⚠️​关于 IP 被墙： 如果发现节点突然无法连接，通常是 IP 遭到了封锁。此时可以尝试更换端口，或者在 3x-ui 面板中重新生成 Reality 密钥。
+

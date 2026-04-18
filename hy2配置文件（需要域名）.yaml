@@ -1,0 +1,37 @@
+listen: "[::]:443"
+
+listenUDP:
+  - 20000-50000
+
+obfs:
+  type: salamander
+  salamander:
+    password: "自定义"
+
+tls:
+  cert: /etc/hysteria/cert/fullchain.pem
+  key: /etc/hysteria/cert/privkey.pem
+  
+auth:
+  type: password
+  password: 自定义
+
+masquerade:
+  type: proxy
+  proxy:
+    url: https://news.ycombinator.com/
+    rewriteHost: true
+
+resolver:
+  tls:
+    addr: 1.1.1.1:443
+    sni: cloudflare-dns.com
+    insecure: false
+
+ignoreClientBandwidth: false
+
+sniff:
+  enable: true
+  timeout: 5s
+  tcpPorts: "80,443"
+  udpPorts: "all"

@@ -1,0 +1,113 @@
+🚀 VLESS Reality 节点部署完整教程
+
+从零到上手的 Reality 协议部署指南
+
+---
+
+📋 前置准备
+
+必需条件
+✅ 一台 VPS（推荐 Ubuntu 20.04+ 或 CentOS 8+）
+✅ 域名（需备案或可解析）
+✅ 基础 Linux 操作能力
+
+环境检查
+# 检查系统版本
+cat /etc/os-release
+
+# 检查防火墙状态
+sudo ufw status  # Ubuntu
+sudo firewall-cmd --state  # CentOS
+
+
+---
+
+🔧 部署步骤
+
+1️⃣ 安装 Xray
+# 官方安装脚本
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)"
+
+# 验证安装
+xray version
+
+
+2️⃣ 生成 Reality 密钥对
+# 生成私钥和公钥
+xray uuid
+
+# 保存私钥（用于配置）
+PRIVATE_KEY="your_private_key_here"
+
+
+3️⃣ 配置 Xray
+创建 /usr/local/etc/xray/config.json：
+
+mkdir -p /usr/local/etc/xray
+cat > /usr/local/etc/xray/config.json << 'EOF'
+{
+  "inbounds": [
+    {
+      "port": 443,
+      "listen": "::",                    // 同时监听 IPv4 + IPv6
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "AEA6232F-C1F8-DCBA-E755-C8D2BE60ECD4",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none",
+        "fallbacks": [                   // ← 回落 nginx 的地方
+          {
+            "dest": 80                   // nginx 默认监听 80 端口（可改成你 nginx 的端口）
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "target": "www.microsoft.com:443",     // 推荐真实大站（文档推荐做法）
+          "serverNames": ["www.microsoft.com", "microsoft.com"],
+          "privateKey": "替换私钥",
+          "shortIds": ["0123456789abcdef"],
+          "limitFallbackUpload": {
+            "afterBytes": 10485760,
+            "bytesPerSec": 1048576
+          },
+          "limitFallbackDownload": {
+            "afterBytes": 10485760,
+            "bytesPerSec": 1048576
+          }
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom"
+    }
+  ]
+}
+EOF
+
+
+---
+
+📊 性能优化建议
+
+• 使用 CDN 加速（Cloudflare 等）
+• 选择低延迟的 VPS 提供商
+• 定期更新 Xray 到最新版本
+
+---
+
+💡 提示：Reality 协议抗封锁能力强，适合高要求场景。建议配合域名使用，避免 IP 直连。
+
+🔗 参考：Xray 官方文档
