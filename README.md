@@ -56,13 +56,11 @@ X-UI 面板安装命令
 S-UI 面板安装命令
 
 · Alireza0 版 (最流行)：基于 Sing-box 的主流面板
-  ```bash
+  ```
   bash <(curl -Ls https://raw.githubusercontent.com/alireza0/s-ui/master/install.sh)
   ```
 · S-UI-Pro (进阶版)：集成 Nginx，适合处理高强度连接
-  ```bash
+  ```
    bash <(wget -qO- https://raw.githubusercontent.com/GFW4Fun/S-UI-PRO/master/s-ui-pro.sh) -install yes
   ```
 
-```
-```
