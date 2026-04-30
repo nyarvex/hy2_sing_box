@@ -1,10 +1,8 @@
-```markdown
 # Xray 官方安装命令
-
 维护团队：XTLS 
-
 ```bash
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+```
 ```
 
 · 更新/删除/帮助：
@@ -14,9 +12,9 @@ bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release
   · 查看帮助：bash -c "$(curl -L ...)" @ help
 
 为方便使用，原完整脚本地址省略为 ...，实际执行请复制上面的完整命令。
+```
 
-Sing-box 官方安装命令
-
+# Sing-box 官方安装命令
 维护团队：SagerNet
 
 ```bash
@@ -27,7 +25,8 @@ curl -fsSL https://sing-box.app/install.sh | sh
   · 安装测试版：在末尾加上参数 sh -s -- --beta
   · 安装指定版本：sh -s -- --version <版本号>
 
-Mihomo 内核
+
+# Mihomo 内核
 
 注意：原版开源 Clash（Dreamacro/clash）已于 2023 年底删库停更，当前主流的是以下社区分支，安装时建议优先考虑：
 
@@ -38,6 +37,7 @@ Mihomo 内核（原名 Clash.Meta，最推荐）
 
 ```bash
 bash -c "$(curl -L https://raw.githubusercontent.com/MetaCubeX/mihomo/refs/heads/master/scripts/install.sh)" @ install
+```
 ```
 
 X-UI 面板安装命令
@@ -62,4 +62,5 @@ S-UI 面板安装命令
    bash <(wget -qO- https://raw.githubusercontent.com/GFW4Fun/S-UI-PRO/master/s-ui-pro.sh) -install yes
   ```
 
+```
 ```
