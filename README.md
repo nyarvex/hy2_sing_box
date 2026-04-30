@@ -51,6 +51,8 @@ X-UI 面板安装命令
   bash <(curl -Ls https://gitcode.com/gh_mirrors/xui/x-ui/raw/master/install.sh)
   ```
 
+# 图形化面板
+
 S-UI 面板安装命令
 
 · Alireza0 版 (最流行)：基于 Sing-box 的主流面板
