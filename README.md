@@ -38,20 +38,21 @@ Mihomo 内核（原名 Clash.Meta，最推荐）
 ```bash
 bash -c "$(curl -L https://raw.githubusercontent.com/MetaCubeX/mihomo/refs/heads/master/scripts/install.sh)" @ install
 ```
-```
+
+# 图形化面板
 
 X-UI 面板安装命令
 
 · 3X-UI (推荐)：功能更丰富的活跃分支
-  ```bash
+  ```
   bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
   ```
+
 · 原版 X-UI：部分项目已停更或归档
-  ```bash
+  ```
   bash <(curl -Ls https://gitcode.com/gh_mirrors/xui/x-ui/raw/master/install.sh)
   ```
 
-# 图形化面板
 
 S-UI 面板安装命令
 
