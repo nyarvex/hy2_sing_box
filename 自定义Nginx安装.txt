@@ -1,74 +1,18 @@
-#!/bin/bash
-# =====================================================
-# 生产级 Nginx 源码编译安装脚本 - 最终强化版
-# 系统: Debian / Ubuntu (推荐)
-# 功能: 最新稳定版 + HTTP/3 + 完整安全/性能优化 + systemd
-# 作者: Grok 强化版 | 最后检查时间: 2026-05-09
-# =====================================================
-
-set -e  # 任何命令失败立即退出
-
-echo "====================================================="
-echo "🚀 开始执行生产级 Nginx 源码编译部署..."
-echo "====================================================="
-
-# ==================== 1. 系统更新与依赖安装 ====================
-echo "[1/7] 更新系统并安装编译依赖..."
-
-apt-get update -qq
-apt-get upgrade -y -qq
-
-apt-get install -y --no-install-recommends \
-    build-essential \
-    libpcre3-dev \
-    zlib1g-dev \
-    libjemalloc-dev \
-    libbrotli-dev \
-    curl \
-    wget \
-    git \
-    ca-certificates \
-    systemd \
-    libssl-dev \
-    pkg-config
-
-# ==================== 2. 创建运行用户 ====================
-echo "[2/7] 创建 www-data 用户和组..."
-
-if ! id -u www-data >/dev/null 2>&1; then
-    useradd -r -s /bin/false -U www-data
-    echo "✅ www-data 用户已创建"
-else
-    echo "✅ www-data 用户已存在"
-fi
-
-# ==================== 3. 下载最新源码 ====================
-echo "[3/7] 下载最新 Nginx 和 OpenSSL 源码..."
-
+# 进入工作目录
 cd /root
 
-NGINX_VER="1.30.0"
-OPENSSL_VER="3.6.2"
+# 下载 Nginx 源码
+wget https://nginx.org/download/nginx-1.28.0.tar.gz
+tar xzf nginx-1.28.0.tar.gz
 
-# 下载 Nginx
-if [ ! -f "nginx-${NGINX_VER}.tar.gz" ]; then
-    wget -q --show-progress https://nginx.org/download/nginx-${NGINX_VER}.tar.gz
-fi
+# 下载 OpenSSL 3.5.1 源码
+wget https://www.openssl.org/source/openssl-3.5.1.tar.gz
+tar xzf openssl-3.5.1.tar.gz
+编译Nginx 
 
-# 下载 OpenSSL
-if [ ! -f "openssl-${OPENSSL_VER}.tar.gz" ]; then
-    wget -q --show-progress https://www.openssl.org/source/openssl-${OPENSSL_VER}.tar.gz
-fi
+先进入目录 cd /root/nginx-1.28.0
 
-# 解压
-tar xzf nginx-${NGINX_VER}.tar.gz
-tar xzf openssl-${OPENSSL_VER}.tar.gz
-
-cd nginx-${NGINX_VER}
-
-# ==================== 4. 配置编译选项（强化生产配置） ====================
-echo "[4/7] 配置 Nginx（启用全现代特性 + 安全性能优化）..."
-
+# 1. 安装模块
 ./configure \
   --prefix=/usr/local/nginx \
   --user=www-data \
@@ -81,159 +25,17 @@ echo "[4/7] 配置 Nginx（启用全现代特性 + 安全性能优化）..."
   --with-stream_ssl_preread_module \
   --with-http_stub_status_module \
   --with-http_realip_module \
-  --with-http_gzip_static_module \
-  --with-http_brotli_module \
   --with-pcre-jit \
-  --with-openssl=/root/openssl-${OPENSSL_VER} \
-  --with-openssl-opt="no-weak-ssl-ciphers enable-ec_nistp_64_gcc_128 no-tests" \
-  --with-cc-opt="-O3 -march=x86-64 -fstack-protector-strong -flto -fPIC -Wno-deprecated-declarations" \
-  --with-ld-opt="-ljemalloc -Wl,-z,relro -Wl,-z,now -flto -pie"
+  --with-openssl=/root/openssl-3.5.1 \
+  --with-openssl-opt="enable-tls1_3 enable-ec_nistp_64_gcc_128 no-weak-ssl-ciphers" \
+  --with-cc-opt="-O2 -march=x86-64 -fstack-protector-strong" \
+  --with-ld-opt="-ljemalloc -Wl,-z,relro"
 
-# ==================== 5. 编译与安装 ====================
-echo "[5/7] 编译并安装 Nginx（使用全部CPU核心）..."
+# 2. 编译模块
+make -j1
 
-make -j$(nproc)
-
-echo "正在执行 make install..."
+# 3. 安装
 sudo make install
 
-# ==================== 6. 创建目录、权限与日志 ====================
-echo "[6/7] 创建生产所需目录并设置权限..."
-
-mkdir -p /var/log/nginx \
-         /var/cache/nginx \
-         /usr/local/nginx/conf/conf.d \
-         /usr/local/nginx/conf/sites-enabled \
-         /usr/local/nginx/conf/sites-available
-
-chown -R www-data:www-data /var/log/nginx /var/cache/nginx
-chmod -R 755 /var/log/nginx /var/cache/nginx
-chmod 700 /usr/local/nginx/logs 2>/dev/null || true
-
-# ==================== 7. 创建 systemd 服务 ====================
-echo "[7/7] 创建并启用 systemd 服务..."
-
-cat > /etc/systemd/system/nginx.service << 'EOF'
-[Unit]
-Description=NGINX High Performance Web Server (Production Build)
-Documentation=https://nginx.org
-After=network-online.target remote-fs.target nss-lookup.target
-Wants=network-online.target
-
-[Service]
-Type=forking
-PIDFile=/usr/local/nginx/logs/nginx.pid
-ExecStartPre=/usr/local/nginx/sbin/nginx -t -q
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s QUIT $MAINPID
-Restart=always
-RestartSec=5s
-StartLimitInterval=100s
-StartLimitBurst=10
-
-# 安全强化
-PrivateTmp=true
-ProtectSystem=full
-NoNewPrivileges=true
-LimitNOFILE=65535
-LimitNPROC=65535
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# ==================== 创建优化后的 nginx.conf ====================
-cat > /usr/local/nginx/conf/nginx.conf << 'EOF'
-user www-data;
-worker_processes auto;
-worker_rlimit_nofile 65535;
-pid /usr/local/nginx/logs/nginx.pid;
-
-events {
-    worker_connections 16384;
-    multi_accept on;
-    use epoll;
-}
-
-http {
-    include       mime.types;
-    default_type  application/octet-stream;
-
-    # 性能优化
-    sendfile            on;
-    tcp_nopush          on;
-    tcp_nodelay         on;
-    keepalive_timeout   65;
-    keepalive_requests  1000;
-    types_hash_max_size 2048;
-
-    # 安全设置
-    server_tokens       off;
-    server_name_in_redirect off;
-
-    # SSL/TLS 全局设置
-    ssl_protocols       TLSv1.2 TLSv1.3;
-    ssl_ciphers         ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
-    ssl_prefer_server_ciphers on;
-    ssl_session_cache   shared:SSL:20m;
-    ssl_session_timeout 1h;
-    ssl_session_tickets off;
-
-    # HTTP/3 (QUIC) 设置
-    http3_max_concurrent_streams 128;
-    quic_retry on;
-    quic_gso on;
-
-    # 日志设置（带缓冲）
-    access_log /var/log/nginx/access.log main buffer=32k flush=10s;
-    error_log  /var/log/nginx/error.log warn;
-
-    # 压缩
-    gzip on;
-    gzip_vary on;
-    gzip_proxied any;
-    gzip_comp_level 6;
-    gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
-
-    # 包含额外配置文件
-    include /usr/local/nginx/conf/conf.d/*.conf;
-    include /usr/local/nginx/conf/sites-enabled/*.conf;
-}
-
-# 默认日志格式
-log_format main '$remote_addr - $remote_user [$time_local] "$request" '
-                '$status $body_bytes_sent "$http_referer" '
-                '"$http_user_agent" "$http_x_forwarded_for"';
-EOF
-
-# ==================== 收尾操作 ====================
-echo "正在重新加载 systemd 并启动 Nginx..."
-
-systemctl daemon-reload
-systemctl enable --now nginx
-
-# 最终验证
-echo "====================================================="
-echo "✅ Nginx 生产级部署完成！"
-echo "====================================================="
-echo "Nginx 版本信息："
+# 4.验证是否成功
 /usr/local/nginx/sbin/nginx -V
-
-echo "服务状态："
-systemctl status nginx --no-pager -l | head -n 20
-
-echo ""
-echo "📌 重要路径："
-echo "   • 主程序: /usr/local/nginx/sbin/nginx"
-echo "   • 配置文件: /usr/local/nginx/conf/nginx.conf"
-echo "   • 日志目录: /var/log/nginx/"
-echo "   • 站点配置: /usr/local/nginx/conf/sites-enabled/"
-echo ""
-echo "🔧 建议后续操作："
-echo "   1. 放行防火墙 UDP 443（HTTP/3 需要）：ufw allow 443/udp"
-echo "   2. 配置 SSL 证书并创建站点配置文件"
-echo "   3. 定期更新：定期重新运行此脚本获取最新版本"
-
-# 清理源码（可选，保留便于后续升级）
-echo "源码保留在 /root 目录，可用于后续升级。"
