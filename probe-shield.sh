@@ -1,18 +1,4 @@
 #!/usr/bin/env bash
-# ============================================================================
-# anti_probe_wizard_pro.sh
-# 生产级 VPS 入站防护墙 - 修复版
-#
-# 修复内容：
-#   1. 空回滚文件现在写入 "flush ruleset"，确保回滚绝对生效
-#   2. 增加应急逃生端口 65522（无条件放行，防永久锁死）
-#   3. 修复日志变量空格缺失导致的语法错误（ENABLE_LOGGING=no 时）
-#   4. 改进 SSH_CONNECTION 解析（read 替代 set，避免 IPv6 错位）
-#   5. 增加内核硬化（syncookies、conntrack、keepalive、ARP）
-#   6. 增加 Fail2Ban 联动与 IP 格式验证
-#   7. 清理旧回滚守护进程，支持 at 命令提高可靠性
-# ============================================================================
-
 set -Eeuo pipefail
 
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]:-$0}")"
